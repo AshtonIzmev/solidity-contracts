@@ -1,0 +1,116 @@
+####### CONFIGURATION GENERIQUE
+apt-get update
+apt-get upgrade
+
+apt-get install -y fail2ban
+
+useradd deploy -s /bin/bash
+mkdir /home/deploy
+mkdir /home/deploy/.ssh
+chmod 700 /home/deploy/.ssh
+
+useradd ethereum -s /bin/bash
+mkdir /home/ethereum
+mkdir /home/ethereum/.ssh
+chmod 700 /home/ethereum/.ssh
+
+touch /home/deploy/.ssh/authorized_keys
+touch /home/ethereum/.ssh/authorized_keys
+
+chmod 600 /home/deploy/.ssh/authorized_keys
+chown deploy:deploy /home/deploy -R
+
+chmod 600 /home/ethereum/.ssh/authorized_keys
+chown ethereum:ethereum /home/ethereum -R
+
+# Les mots de passe doivent etre assez long, je conseille  `pwgen -s -y 30`
+passwd deploy
+passwd ethereum
+
+# cote client
+ssh-copy-id deploy@ethvps
+ssh-copy-id ethereum@ethvps
+ssh-copy-id root@ethvps
+
+chmod 400 /home/deploy/.ssh/authorized_keys
+chmod 400 /home/ethereum/.ssh/authorized_keys
+
+# Changer
+# PasswordAuthentication no
+# /etc/ssh/sshd_config
+
+
+ufw allow 22	# SSH
+ufw allow 80	# pour la redirection vers https de l'application web3js
+ufw allow 443   # pour l'application web3js
+ufw allow 8545  # pour le noeud ethereum
+ufw allow 18545 # pour le noeud ethereum
+ufw allow 30303 # pour le discovery ethereum
+ufw enable
+
+
+
+####### POUR DEPLOYER L'APPLICATION WEB
+apt install nginx
+# Avec la conf nginx suivante dans /etc/nginx/sites-available/curieux.ma
+server {
+	server_name curieux.ma;
+	root /var/www/html/curieux.ma;
+
+	location / {
+                try_files $uri $uri/ =404;
+        }
+	gzip on;
+	gzip_types application/javascript image/* text/css;
+	gunzip on;
+}
+# Retour au shell
+ln -s /etc/nginx/sites-available/curieux.ma /etc/nginx/sites-enabled/curieux.ma
+
+systemctl restart nginx
+systemctl reload nginx
+
+chmod 755 -R /var/www/html/curieux.ma
+
+# On configure certbot : https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx.html
+snap install core
+snap refresh core
+snap install --classic certbot
+ln -s /snap/bin/certbot /usr/bin/certbot
+certbot --nginx
+
+####### POUR DEPLOYER LE NOEUD ETHEREUM : https://geth.ethereum.org/docs/interface/private-network
+# Installation de geth
+apt-get install software-properties-common
+add-apt-repository -y ppa:ethereum/ethereum
+apt-get update
+apt-get install ethereum
+
+# Avec le user ethereum
+mkdir /home/ethereum/node
+mkdir logs
+/usr/bin/geth account new --datadir /home/ethereum/node/data
+
+# On recupere la cle publique pour le block genesis.json
+# et on déploie le fichier genesis.json avec le script deploy_ethereum.sh
+
+rm -rf node/data/geth distributor/data/geth node/data/history distributor/data/history
+
+/usr/bin/geth init --datadir /home/ethereum/node/data /home/ethereum/node/genesis.json
+/usr/bin/geth init --datadir /home/ethereum/distributor/data /home/ethereum/node/genesis.json
+
+/usr/bin/geth --datadir /home/ethereum/distributor/data --nodiscover --networkid 212 --port 30305 --unlock 0xF72eF0d377515c11056660be5D65A3B407095254 --password /home/ethereum/distributor/password.txt --miner.gasprice 0 --txpool.pricelimit 0  --mine --syncmode full
+
+/usr/bin/geth --datadir /home/ethereum/node/data --networkid 212 --http --http.addr 0.0.0.0 --http.corsdomain "curieux.ma" --miner.gasprice 0 --txpool.pricelimit 0 --http.api web3,personal,eth,net --http.vhosts '*' --port 30303 --syncmode full
+
+
+enode=`geth attach /home/ethereum/distributor/data/geth.ipc --exec admin.nodeInfo.enode`
+geth attach /home/ethereum/node/data/geth.ipc --exec "admin.addPeer(${enode})"
+geth attach /home/ethereum/node/data/geth.ipc --exec "admin.peers"
+
+
+geth attach /home/ethereum/distributor/data/geth.ipc
+geth attach /home/ethereum/node/data/geth.ipc
+
+systemctl stop gethn gethd
+systemctl start gethn gethd
