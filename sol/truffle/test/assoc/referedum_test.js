@@ -1,20 +1,23 @@
-var AssoOrg = artifacts.require("AssociationOrg");
-var AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
-var AssoReferendum = artifacts.require("AssociationAdministrationReferendum");
+const AssoOrg = artifacts.require("AssociationOrg");
+const AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
+const AssoReferendum = artifacts.require("AssociationAdministrationReferendum");
+const MasterOrg = artifacts.require("MasterOrg");
 
 contract('AssociationAdministration', async(accounts) => {
 
-  let tryCatch = require("./exceptions.js").tryCatch;
-  let errTypes = require("./exceptions.js").errTypes;
+  let tryCatch = require("../utils/exceptions.js").tryCatch;
+  let errTypes = require("../utils/exceptions.js").errTypes;
 
   let assoOrg3Members;
+  let masterOrg;
   let owner               = accounts[0];
   let randomGuy           = accounts[1];
   let wannabeMember       = accounts[5];
   let wannabeMemberToo    = accounts[6];
 
   before(async() => {
-    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test");
+    masterOrg = await MasterOrg.new();
+    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr = await AssoCoopt.new(assoOrg3Members.address, "Ali_test", {from: wannabeMember});
     await cooptCtr.vote();

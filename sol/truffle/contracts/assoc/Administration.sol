@@ -47,6 +47,7 @@ contract AssociationAdministrationMemberban is AssociationAdministration {
     constructor(address _assoCtr, address payable _proposedMember) {
         proposedMember = _proposedMember;
         assoCtr = AssociationOrg(_assoCtr);
+        assoCtr.emitAdmin(address(this), uint(adminAction));
         require(assoCtr.members(_proposedMember), "Only members can be banned");
         require(_proposedMember != assoCtr.owner(), "Owner cannot be banned, change owner first");
     }

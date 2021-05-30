@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "../utils/Context.sol";
 import "../assoc/Administration.sol";
+import "../assoc/Master.sol";
 
 contract AssociationOrg is Context {
 
@@ -20,11 +21,12 @@ contract AssociationOrg is Context {
     bool public maintenanceMode;
     string public name;
     string[] public referendums;
-    
-    
-    constructor(string memory _name, string memory _memberName) {
+
+    constructor(string memory _name, string memory _memberName, address _master) {
         require(bytes(_name).length != 0, "Association name cannot be empty");
         require(bytes(_memberName).length != 0, "Member name cannot be empty");
+        MasterOrg master = MasterOrg(_master);
+        master.emitCreation(address(this), _name);
         owner = _msgSender();
         members[_msgSender()] = true;
         name = _name;
@@ -137,5 +139,12 @@ contract AssociationOrg is Context {
     function getReferendumsCount() public view returns(uint) {
         return referendums.length;
     }
+
+    // TODO add more controls
+    function emitAdmin(address _administration, uint _kind) public {
+        emit AdminEvent(_administration, _kind);
+    }
+
+    event AdminEvent(address _event, uint _kind);
     
 }

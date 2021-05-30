@@ -1,17 +1,20 @@
 const AssoOrg = artifacts.require("AssociationOrg");
+const MasterOrg = artifacts.require("MasterOrg");
 
 contract('AssociationOrg', async (accounts) => {
  
-  let tryCatch = require("./exceptions.js").tryCatch;
-  let errTypes = require("./exceptions.js").errTypes;
+  let tryCatch = require("../utils/exceptions.js").tryCatch;
+  let errTypes = require("../utils/exceptions.js").errTypes;
 
   let assoSimpleOrg;
+  let masterOrg;
   let owner         = accounts[0];
   let nonOwner      = accounts[1];
   let wannabeMember = accounts[5];
 
   before(async() => {
-    assoSimpleOrg = await AssoOrg.new("testAssociation", "Issam_test");
+    masterOrg = await MasterOrg.new();
+    assoSimpleOrg = await AssoOrg.new("testAssociation", "Issam_test", masterOrg.address);
   });
 
   it("should make the creator of the contract the owner", async() => {
@@ -33,9 +36,9 @@ contract('AssociationOrg', async (accounts) => {
   })
 
   it("Should not allow empty member name of association name", async() => {
-    await tryCatch(AssoOrg.new("testAssociation", ""), errTypes.revert);
-    await tryCatch(AssoOrg.new("", "Issam_test"), errTypes.revert);
-    await tryCatch(AssoOrg.new("", ""), errTypes.revert);
+    await tryCatch(AssoOrg.new("testAssociation", "", masterOrg.address), errTypes.revert);
+    await tryCatch(AssoOrg.new("", "Issam_test", masterOrg.address), errTypes.revert);
+    await tryCatch(AssoOrg.new("", "", masterOrg.address), errTypes.revert);
   })
 
   it("Name is correct", async() => {

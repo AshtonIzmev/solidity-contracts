@@ -1,16 +1,18 @@
-var AssoOrg = artifacts.require("AssociationOrg");
-var AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
-var AssoAdminOC = artifacts.require("AssociationAdministrationOwnerchange");
-var AssoAdminMB = artifacts.require("AssociationAdministrationMemberban");
-var AssoAdminSD = artifacts.require("AssociationAdministrationSelfdestruct");
+const AssoOrg = artifacts.require("AssociationOrg");
+const AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
+const AssoAdminOC = artifacts.require("AssociationAdministrationOwnerchange");
+const AssoAdminMB = artifacts.require("AssociationAdministrationMemberban");
+const AssoAdminSD = artifacts.require("AssociationAdministrationSelfdestruct");
+const MasterOrg = artifacts.require("MasterOrg");
 
 contract('AssociationAdministration', async(accounts) => {
 
-  let tryCatch = require("./exceptions.js").tryCatch;
-  let errTypes = require("./exceptions.js").errTypes;
+  let tryCatch = require("../utils/exceptions.js").tryCatch;
+  let errTypes = require("../utils/exceptions.js").errTypes;
 
   let assoOrg3Members;
   let assoOrg2Members;
+  let masterOrg;
   let owner               = accounts[0];
   let randomGuy           = accounts[1];
   let wannabeMember       = accounts[5];
@@ -18,7 +20,8 @@ contract('AssociationAdministration', async(accounts) => {
 
 
   before(async() => {
-    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test");
+    masterOrg = await MasterOrg.new();
+    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr = await AssoCoopt.new(assoOrg3Members.address, "Ali_test", {from: wannabeMember});
     await cooptCtr.vote();
@@ -29,7 +32,7 @@ contract('AssociationAdministration', async(accounts) => {
     await cooptCtr2.vote({from: wannabeMember})
     await assoOrg3Members.handleCooptationAction(cooptCtr2.address, {from: wannabeMemberToo});
 
-    assoOrg2Members = await AssoOrg.new("testAssociation2", "Issam_test");
+    assoOrg2Members = await AssoOrg.new("testAssociation2", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr3 = await AssoCoopt.new(assoOrg2Members.address, "Ali_test", {from: wannabeMember});
     await cooptCtr3.vote();
@@ -60,8 +63,8 @@ contract('AssociationAdministration', async(accounts) => {
   });
 
   it("bad assoOrg reference", async() => {
-    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test");
-    let assoOrgFake = await AssoOrg.new("testAssociationFake", "Issam_fake_test");
+    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test", masterOrg.address);
+    let assoOrgFake = await AssoOrg.new("testAssociationFake", "Issam_fake_test", masterOrg.address);
     let assoAdminOC = await AssoAdminOC.new(assoOrgFake.address, {from: randomGuy});
     await assoAdminOC.vote();
     await tryCatch(assoOrg.handleOwnerchangeAction(assoAdminOC.address), errTypes.revert);  
@@ -114,7 +117,7 @@ contract('AssociationAdministration', async(accounts) => {
 
 
   it("Owner owner change ??", async() => {
-    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test");
+    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test", masterOrg.address);
     await tryCatch(AssoAdminOC.new(assoOrg.address, {from: owner}), errTypes.revert);
   })
 

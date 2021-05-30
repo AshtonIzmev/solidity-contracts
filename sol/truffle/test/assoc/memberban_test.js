@@ -1,21 +1,24 @@
-var AssoOrg = artifacts.require("AssociationOrg");
-var AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
-var AssoAdminMB = artifacts.require("AssociationAdministrationMemberban");
+const AssoOrg = artifacts.require("AssociationOrg");
+const AssoCoopt = artifacts.require("AssociationAdministrationCooptation");
+const AssoAdminMB = artifacts.require("AssociationAdministrationMemberban");
+const MasterOrg = artifacts.require("MasterOrg");
 
 contract('AssociationAdministration', async(accounts) => {
 
-  let tryCatch = require("./exceptions.js").tryCatch;
-  let errTypes = require("./exceptions.js").errTypes;
+  let tryCatch = require("../utils/exceptions.js").tryCatch;
+  let errTypes = require("../utils/exceptions.js").errTypes;
 
   let assoOrg3Members;
   let assoOrg2Members;
+  let masterOrg;
   let owner               = accounts[0];
   let randomGuy           = accounts[1];
   let wannabeMember       = accounts[5];
   let wannabeMemberToo    = accounts[6];
 
   before(async() => {
-    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test");
+    masterOrg = await MasterOrg.new();
+    assoOrg3Members = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr = await AssoCoopt.new(assoOrg3Members.address, "Mohamed_test", {from: wannabeMember});
     await cooptCtr.vote();
@@ -26,7 +29,7 @@ contract('AssociationAdministration', async(accounts) => {
     await cooptCtr2.vote({from: wannabeMember})
     await assoOrg3Members.handleCooptationAction(cooptCtr2.address, {from: wannabeMemberToo});
 
-    assoOrg2Members = await AssoOrg.new("testAssociation2", "Issam_test");
+    assoOrg2Members = await AssoOrg.new("testAssociation2", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr3 = await AssoCoopt.new(assoOrg2Members.address, "Mohamed_test", {from: wannabeMember});
     await cooptCtr3.vote();
@@ -58,7 +61,7 @@ contract('AssociationAdministration', async(accounts) => {
   });
 
   it("Member ban", async() => {
-    let assoOrg2Mem = await AssoOrg.new("testAssociation2", "Issam_test");
+    let assoOrg2Mem = await AssoOrg.new("testAssociation2", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr3 = await AssoCoopt.new(assoOrg2Mem.address, "Ali_test", {from: wannabeMember});
     await cooptCtr3.vote();
@@ -83,7 +86,7 @@ contract('AssociationAdministration', async(accounts) => {
   })
 
   it("Duplicate Member ban", async() => {
-    let assoOrg2Mem = await AssoOrg.new("testAssociation2", "Issam_test");
+    let assoOrg2Mem = await AssoOrg.new("testAssociation2", "Issam_test", masterOrg.address);
     // first cooptation
     let cooptCtr3 = await AssoCoopt.new(assoOrg2Mem.address, "Ali_test", {from: wannabeMember});
     await cooptCtr3.vote();
@@ -97,12 +100,12 @@ contract('AssociationAdministration', async(accounts) => {
   })
 
   it("Owner ban impossible", async() => {
-    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test");
+    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test", masterOrg.address);
     await tryCatch(AssoAdminMB.new(assoOrg.address, owner), errTypes.revert);
   })
 
   it("Non member ban impossible", async() => {
-    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test");
+    let assoOrg = await AssoOrg.new("testAssociation", "Issam_test", masterOrg.address);
     await tryCatch(AssoAdminMB.new(assoOrg.address, wannabeMemberToo), errTypes.revert);
   })
 
