@@ -49,6 +49,7 @@ contract('Mudaraba', async (accounts) => {
   it("Public variables should be set by constructor", async() => {
     let desc = "Description";
     let tmpMudarabaCtr = await MudarabaCtr.new(desc, "12345", 10000, medCtr.address, fpCtr.address, {from: citizen1});
+    await kycCtr.validateKYC(tmpMudarabaCtr.address, {from: homeAffaireDept});
     let description = await tmpMudarabaCtr.description();
     let ice = await tmpMudarabaCtr.ice();
     let capitalCap = await tmpMudarabaCtr.capitalCap();
@@ -147,6 +148,7 @@ contract('Mudaraba', async (accounts) => {
   it("Distribute mudaraba profit", async() => {
     let tmpMudarabaCtr = await MudarabaCtr.new("A", "12345", 10000, medCtr.address, fpCtr.address, 
       {from: citizen5});
+    await kycCtr.validateKYC(tmpMudarabaCtr.address, {from: homeAffaireDept});
     await medCtr.updateAccount(citizen5, {from: citizen1});
     
     await fpCtr.setApprovalForAll(tmpMudarabaCtr.address, true, {from: issuingBank});
@@ -178,6 +180,7 @@ contract('Mudaraba', async (accounts) => {
   it("Take mudaraba loss", async() => {
     let tmpMudarabaCtr = await MudarabaCtr.new("A", "12345", 10000, medCtr.address, fpCtr.address, 
       {from: citizen5});
+    await kycCtr.validateKYC(tmpMudarabaCtr.address, {from: homeAffaireDept});
     await medCtr.updateAccount(citizen5, {from: citizen1});
     
     await fpCtr.setApprovalForAll(tmpMudarabaCtr.address, true, {from: issuingBank});

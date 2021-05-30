@@ -71,8 +71,8 @@ contract MED is ERC20 {
     }
 
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
-        require(kyc.isIdentified(_msgSender()));
-        require(kyc.isIdentified(recipient));
+        require(kyc.isIdentified(_msgSender()), "KYC need to be done for sender");
+        require(kyc.isIdentified(recipient), "KYC need to be done for recipient");
         _updateAccount(_msgSender());
         _updateAccount(recipient);
         _transfer(_msgSender(), recipient, amount);
@@ -80,7 +80,7 @@ contract MED is ERC20 {
     }
 
     function updateAccount(address taxPayer) public virtual {
-        require(kyc.isIdentified(taxPayer));
+        require(kyc.isIdentified(taxPayer), "KYC need to be done for taxPayer");
         _updateAccount(taxPayer);
     }
 

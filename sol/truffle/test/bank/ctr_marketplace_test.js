@@ -42,6 +42,7 @@ contract('Marketplace', async (accounts) => {
     await kycCtr.validateKYC(citizen5, {from: homeAffaireDept});
     await kycCtr.validateKYC(fpCtr.address, {from: homeAffaireDept});
     await kycCtr.validateKYC(datCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(mpCtr.address, {from: homeAffaireDept});
     await medCtr.incrementMonth({from: centralBankAcc});
     await medCtr.incrementMonth({from: centralBankAcc});
 
@@ -61,7 +62,8 @@ contract('Marketplace', async (accounts) => {
   });
 
   it("Public variables should be set by constructor", async() => {
-    let tmpMpCtr = await MPCtr.new(12, 8, medCtr.address, fpCtr.address, {from: issuingBank})
+    let tmpMpCtr = await MPCtr.new(12, 8, medCtr.address, fpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpMpCtr.address, {from: homeAffaireDept});
     let sf = await tmpMpCtr.sellFee();
     let wf = await tmpMpCtr.withdrawFee();
     assert.equal(sf, 12, "Sell fees are set");

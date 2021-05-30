@@ -1,2 +1,5 @@
 sol/truffle/build/
 script/send-ether.js
+
+deploy_ethereum.sh
+deploy_send_ether.sh

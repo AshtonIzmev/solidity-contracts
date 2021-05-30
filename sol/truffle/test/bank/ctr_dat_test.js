@@ -45,6 +45,7 @@ contract('DAT', async (accounts) => {
 
   it("Public variables should be set by constructor", async() => {
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, medCtr.address, fpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpDatCtr.address, {from: homeAffaireDept});
     let minAm = await tmpDatCtr.minimumAmount();
     let dayDur = await tmpDatCtr.dayDuration();
     let intRate = await tmpDatCtr.interestRate();
@@ -57,6 +58,9 @@ contract('DAT', async (accounts) => {
     let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpMedCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpFpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpDatCtr.address, {from: homeAffaireDept});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.updateAccount(citizen1, {from: citizen1});
@@ -69,6 +73,9 @@ contract('DAT', async (accounts) => {
     let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpMedCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpFpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpDatCtr.address, {from: homeAffaireDept});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.updateAccount(citizen1, {from: citizen1});
@@ -80,6 +87,9 @@ contract('DAT', async (accounts) => {
     let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpMedCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpFpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpDatCtr.address, {from: homeAffaireDept});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.updateAccount(citizen1, {from: citizen1});
@@ -92,6 +102,9 @@ contract('DAT', async (accounts) => {
     let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(tmpMedCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpFpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(tmpDatCtr.address, {from: homeAffaireDept});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
     await tmpMedCtr.updateAccount(citizen1, {from: citizen1});
@@ -162,7 +175,5 @@ contract('DAT', async (accounts) => {
     await tryCatch(fpCtr.ownerOf(tokId), errTypes.revert);
     assert.equal(bal12.toNumber()-bal11.toNumber(), 368, "Interest rates have been paid minus MED taxes");
   });
-
-
 
 })
