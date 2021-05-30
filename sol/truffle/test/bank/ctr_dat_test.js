@@ -1,18 +1,20 @@
 const MEDCtr = artifacts.require("MED");
 const DATCtr = artifacts.require("DAT");
 const FPCtr = artifacts.require("FP");
-
+const KYCCtr = artifacts.require("KYC");
 
 contract('DAT', async (accounts) => {
  
   let tryCatch = require("../utils/exceptions.js").tryCatch;
   let errTypes = require("../utils/exceptions.js").errTypes;
 
+  let kycCtr;
   let medCtr;
   let datCtr;
   let fpCtr;
   let centralBankAcc = accounts[0];
   let treasureAcc    = accounts[9];
+  let homeAffaireDept    = accounts[7];
 
   let issuingBank    = accounts[8];
 
@@ -23,9 +25,19 @@ contract('DAT', async (accounts) => {
   let citizen5    = accounts[5];
 
   before(async() => {
-    medCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.validateKYC(centralBankAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
+    medCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     fpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     datCtr = await DATCtr.new(1000, 2, 25, medCtr.address, fpCtr.address, {from: issuingBank});
+    await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen3, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen4, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen5, {from: homeAffaireDept});
+    await kycCtr.validateKYC(fpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(datCtr.address, {from: homeAffaireDept});
     await fpCtr.setApprovalForAll(datCtr.address, true, {from: issuingBank});
     await medCtr.incrementMonth({from: centralBankAcc});
     await medCtr.incrementMonth({from: centralBankAcc});
@@ -42,7 +54,7 @@ contract('DAT', async (accounts) => {
   });
 
   it("Suscribe DAT fails because ... minimum Amount", async() => {
-    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
@@ -54,7 +66,7 @@ contract('DAT', async (accounts) => {
   });
 
   it("Suscribe DAT fails because ... no allowance", async() => {
-    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
@@ -65,7 +77,7 @@ contract('DAT', async (accounts) => {
   });
 
   it("Suscribe DAT fails because ... insufficient allowance", async() => {
-    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});
@@ -77,7 +89,7 @@ contract('DAT', async (accounts) => {
   });
 
   it("Suscribe DAT fails because ... non approuved contract address", async() => {
-    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    let tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     let tmpFpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     let tmpDatCtr = await DATCtr.new(1000, 2, 1, tmpMedCtr.address, tmpFpCtr.address, {from: issuingBank});
     await tmpMedCtr.incrementMonth({from: centralBankAcc});

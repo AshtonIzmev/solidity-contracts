@@ -2,19 +2,21 @@ const MEDCtr = artifacts.require("MED");
 const FPCtr = artifacts.require("FP");
 const MPCtr = artifacts.require("Marketplace");
 const DATCtr = artifacts.require("DAT");
-
+const KYCCtr = artifacts.require("KYC");
 
 contract('Marketplace', async (accounts) => {
  
   let tryCatch = require("../utils/exceptions.js").tryCatch;
   let errTypes = require("../utils/exceptions.js").errTypes;
 
+  let kycCtr;
   let medCtr;
   let fpCtr;
   let datCtr;
   let mpCtr;
   let centralBankAcc = accounts[0];
   let treasureAcc    = accounts[9];
+  let homeAffaireDept    = accounts[7];
 
   let issuingBank    = accounts[8];
 
@@ -25,11 +27,21 @@ contract('Marketplace', async (accounts) => {
   let citizen5    = accounts[5];
 
   beforeEach(async() => {
-    medCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, {from: centralBankAcc});
+    kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.validateKYC(centralBankAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
+    medCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     fpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
     datCtr = await DATCtr.new(100, 2, 25, medCtr.address, fpCtr.address, {from: issuingBank});
     mpCtr = await MPCtr.new(10, 3, medCtr.address, fpCtr.address, {from: issuingBank})
     await fpCtr.setApprovalForAll(datCtr.address, true, {from: issuingBank});
+    await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen3, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen4, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen5, {from: homeAffaireDept});
+    await kycCtr.validateKYC(fpCtr.address, {from: homeAffaireDept});
+    await kycCtr.validateKYC(datCtr.address, {from: homeAffaireDept});
     await medCtr.incrementMonth({from: centralBankAcc});
     await medCtr.incrementMonth({from: centralBankAcc});
 
