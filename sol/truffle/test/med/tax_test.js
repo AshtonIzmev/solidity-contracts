@@ -1,12 +1,15 @@
 const MEDCtr = artifacts.require("MED");
+const KYCCtr = artifacts.require("KYC");
 
 contract('MED Tax', async (accounts) => {
  
   let tryCatch = require("../utils/exceptions.js").tryCatch;
   let errTypes = require("../utils/exceptions.js").errTypes;
 
+  let kycCtr;
   let centralBankAcc = accounts[0];
   let treasureAcc    = accounts[9];
+  let homeAffaireDept    = accounts[8];
 
   let citizen1    = accounts[1];
   let citizen2    = accounts[2];
@@ -15,8 +18,18 @@ contract('MED Tax', async (accounts) => {
   let citizen5    = accounts[5];
   let citizen6    = accounts[6];
 
+  before(async() => {
+    kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.validateKYC(centralBankAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen5, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen6, {from: homeAffaireDept});
+  });
+
   it("Tax after two days", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 8000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 8000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 3700, {from: treasureAcc});
     await tmpMedCtr.transfer(citizen2, 3600, {from: treasureAcc});
 
@@ -40,7 +53,7 @@ contract('MED Tax', async (accounts) => {
   });
 
   it("No taxation twice in a day", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     await tmpMedCtr.transfer(citizen5, 20, {from: citizen1});
@@ -64,7 +77,7 @@ contract('MED Tax', async (accounts) => {
   });
 
   it("Central Bank force taxation", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     let bal1_1 = await tmpMedCtr.balanceOf(citizen1);

@@ -1,12 +1,15 @@
 const MEDCtr = artifacts.require("MED");
+const KYCCtr = artifacts.require("KYC");
 
 contract('MED Income', async (accounts) => {
  
   let tryCatch = require("../utils/exceptions.js").tryCatch;
   let errTypes = require("../utils/exceptions.js").errTypes;
 
+  let kycCtr;
   let centralBankAcc = accounts[0];
   let treasureAcc    = accounts[9];
+  let homeAffaireDept    = accounts[8];
 
   let citizen1    = accounts[1];
   let citizen2    = accounts[2];
@@ -14,9 +17,17 @@ contract('MED Income', async (accounts) => {
   let citizen4    = accounts[4];
   let citizen5    = accounts[5];
   let citizen6    = accounts[6];
+  
+  before(async() => {
+    kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.validateKYC(centralBankAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
+  });
 
   it("Universal income for everyone after two days and one month", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     let bal1_1 = await tmpMedCtr.balanceOf(citizen1);
@@ -36,7 +47,7 @@ contract('MED Income', async (accounts) => {
   });
 
   it("Tax behavior after two days and one month", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     // Two days and one month after ...
@@ -57,7 +68,7 @@ contract('MED Income', async (accounts) => {
   });
 
   it("Universal income for everyone after 2 months", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000,{from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     let bal1_1 = await tmpMedCtr.balanceOf(citizen1);
@@ -77,7 +88,7 @@ contract('MED Income', async (accounts) => {
   });
 
   it("Universal income for everyone after 2 months after a transfer", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 50000, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 
     let bal1_1 = await tmpMedCtr.balanceOf(citizen1);
@@ -99,7 +110,7 @@ contract('MED Income', async (accounts) => {
   });
 
   it("New universal income", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.mint(50000, {from: centralBankAcc});
     await tmpMedCtr.transfer(citizen1, 20000, {from: treasureAcc});
 

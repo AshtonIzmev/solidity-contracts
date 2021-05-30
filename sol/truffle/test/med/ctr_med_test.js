@@ -1,13 +1,16 @@
 const MEDCtr = artifacts.require("MED");
+const KYCCtr = artifacts.require("KYC");
 
 contract('MED', async (accounts) => {
  
   let tryCatch = require("../utils/exceptions.js").tryCatch;
   let errTypes = require("../utils/exceptions.js").errTypes;
 
+  let kycCtr;
   let emptyMedCtr;
   let centralBankAcc = accounts[0];
   let treasureAcc    = accounts[9];
+  let homeAffaireDept    = accounts[8];
 
   let citizen1    = accounts[1];
   let citizen2    = accounts[2];
@@ -15,9 +18,21 @@ contract('MED', async (accounts) => {
   let citizen4    = accounts[4];
   let citizen5    = accounts[5];
   let citizen6    = accounts[6];
+  let citizen7    = accounts[7];
+
+  before(async() => {
+    kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.validateKYC(centralBankAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen3, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen4, {from: homeAffaireDept});
+    await kycCtr.validateKYC(citizen5, {from: homeAffaireDept});
+  });
 
   it("Name and symbol should be correct", async() => {
-    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, {from: centralBankAcc});
+    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, kycCtr.address, {from: centralBankAcc});
     let name = await emptyMedCtr.name();
     let symbol = await emptyMedCtr.symbol();
     assert.equal(name, "Moroccan E-Dirham", "Name should be correct");
@@ -25,15 +40,15 @@ contract('MED', async (accounts) => {
   });
 
   it("Contract creation with various parameters", async() => {
-    await MEDCtr.new(treasureAcc, 5, 1000, false, 100, {from: centralBankAcc});
-    await MEDCtr.new(treasureAcc, 95, 1000, false, 200, {from: centralBankAcc});
-    await MEDCtr.new(treasureAcc, 5, 5000, false, 30000, {from: centralBankAcc});
-    await MEDCtr.new(treasureAcc, 15, 100, false, 400000, {from: centralBankAcc});
-    await MEDCtr.new(treasureAcc, 55, 500, false, 9999999999, {from: centralBankAcc});
+    await MEDCtr.new(treasureAcc, 5, 1000, false, 100, kycCtr.address, {from: centralBankAcc});
+    await MEDCtr.new(treasureAcc, 95, 1000, false, 200, kycCtr.address, {from: centralBankAcc});
+    await MEDCtr.new(treasureAcc, 5, 5000, false, 30000, kycCtr.address, {from: centralBankAcc});
+    await MEDCtr.new(treasureAcc, 15, 100, false, 400000, kycCtr.address, {from: centralBankAcc});
+    await MEDCtr.new(treasureAcc, 55, 500, false, 9999999999, kycCtr.address, {from: centralBankAcc});
   });
 
   it("Initial amount is correct", async() => {
-    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 12345, {from: centralBankAcc});
+    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 12345, kycCtr.address, {from: centralBankAcc});
     let centralBankBalance = await emptyMedCtr.balanceOf(centralBankAcc);
     let treasureBalance = await emptyMedCtr.balanceOf(treasureAcc);
     assert.equal(centralBankBalance, 0, "No money on centralBank account");
@@ -41,7 +56,7 @@ contract('MED', async (accounts) => {
   });
 
   it("should make the creator of the contract the owner", async() => {
-    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, {from: centralBankAcc});
+    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, kycCtr.address, {from: centralBankAcc});
     let centralBankBalance = await emptyMedCtr.balanceOf(centralBankAcc);
     let treasureBalance = await emptyMedCtr.balanceOf(treasureAcc);
     assert.equal(centralBankBalance, 0, "No money on centralBank account");
@@ -49,25 +64,25 @@ contract('MED', async (accounts) => {
   });
 
   it("Only central bank should be allowed to mint and burn", async() => {
-    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, {from: centralBankAcc});
+    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, kycCtr.address, {from: centralBankAcc});
     await tryCatch(emptyMedCtr.mint(100, {from: treasureAcc}), errTypes.revert);
     await tryCatch(emptyMedCtr.burn(100, {from: treasureAcc}), errTypes.revert);
     await tryCatch(emptyMedCtr.mint(100, {from: citizen1}), errTypes.revert);
   });
 
   it("Can't burn money if total supply is empty", async() => {
-    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, {from: centralBankAcc});
+    emptyMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, kycCtr.address, {from: centralBankAcc});
     await tryCatch(emptyMedCtr.burn(100, {from: centralBankAcc}), errTypes.revert);
   });
 
   it("Can't burn money if total supply is less than amount to burn", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, kycCtr.address, {from: centralBankAcc});
     await tmpMedCtr.mint(99, {from: centralBankAcc});
     await tryCatch(tmpMedCtr.burn(100, {from: centralBankAcc}), errTypes.revert);
   });
 
   it("Mint then burn work properly", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, kycCtr.address, {from: centralBankAcc});
     let totalSupply1 = await tmpMedCtr.totalSupply();
     assert.equal(totalSupply1, 0, "Total supply should be 0 at the begining");
     await tmpMedCtr.mint(99, {from: centralBankAcc});
@@ -79,7 +94,7 @@ contract('MED', async (accounts) => {
   });
 
   it("Non central bank cannot mint nor burn", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, true, 0, kycCtr.address, {from: centralBankAcc});
     tryCatch(tmpMedCtr.mint(100, {from: treasureAcc}), errTypes.revert);
     tryCatch(tmpMedCtr.mint(100, {from: citizen1}), errTypes.revert);
     await tmpMedCtr.mint(99, {from: centralBankAcc});
@@ -88,13 +103,13 @@ contract('MED', async (accounts) => {
   });
 
   it("Non mintable contracts", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 0, kycCtr.address, {from: centralBankAcc});
     tryCatch(tmpMedCtr.mint(100, {from: centralBankAcc}), errTypes.revert);
     tryCatch(tmpMedCtr.mint(100, {from: centralBankAcc}), errTypes.revert);
   });
 
   it("Transfer is working properly", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 100, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 100, kycCtr.address, {from: centralBankAcc});
 
     await tmpMedCtr.transfer(citizen1, 10, {from: treasureAcc});
     await tmpMedCtr.transfer(citizen3, 15, {from: treasureAcc});
@@ -110,8 +125,13 @@ contract('MED', async (accounts) => {
     assert.equal(totalSupply, 100, "Total supply does not change with transfer");
   });
 
+  it("Unvalid KYC => No Transfer", async() => {
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 100, kycCtr.address, {from: centralBankAcc});
+    tryCatch(tmpMedCtr.transfer(citizen7, 10, {from: treasureAcc}), errTypes.revert);
+  });
+
   it("Can't transfer more than you have", async() => {
-    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 100, {from: centralBankAcc});
+    tmpMedCtr = await MEDCtr.new(treasureAcc, 5, 1000, false, 100, kycCtr.address, {from: centralBankAcc});
 
     await tmpMedCtr.transfer(citizen1, 10, {from: treasureAcc});
 
