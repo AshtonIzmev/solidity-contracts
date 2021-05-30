@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "../ERC20/ERC20.sol";
 import "../../utils/Counters.sol";
+import "../../identity/KYC.sol";
 
 /**
  * @dev Implementation of the {ERC20} interface as a sovereign moroccan crypto-currency
@@ -12,6 +13,8 @@ import "../../utils/Counters.sol";
 contract MED is ERC20 {
 
     using Counters for Counters.Counter;
+
+    KYC kyc;
 
     address _centralBank;
     address _treasureAccount;
@@ -42,9 +45,10 @@ contract MED is ERC20 {
      * param allowMint : Should we allow central bank to mint new tokens ?
      */
     constructor (address treasureAccount, uint32 annualTaxRatePercent, uint256 umi, 
-        bool allowMintArg, uint256 initialMint) ERC20("Moroccan E-Dirham", "MED") {
+        bool allowMintArg, uint256 initialMint, address _kyc) ERC20("Moroccan E-Dirham", "MED") {
         _centralBank = _msgSender();
         _treasureAccount = treasureAccount;
+        kyc = KYC(_kyc);
         dailyTaxRate = annualTaxRatePercent * 10000 / 365;
         universalMonthlyIncome = umi;
         allowMint = allowMintArg;
@@ -68,6 +72,7 @@ contract MED is ERC20 {
     }
 
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        require(kyc.isIdentified(_msgSender()));
         _updateAccount(_msgSender());
         _updateAccount(recipient);
         _transfer(_msgSender(), recipient, amount);
