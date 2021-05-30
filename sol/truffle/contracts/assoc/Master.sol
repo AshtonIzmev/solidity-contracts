@@ -10,9 +10,9 @@ contract MasterOrg is Context {
     
     constructor() { }
     
-    function emitCreation(address _association, string memory _name) public {
-        emit CreationEvent(_association, _name);
+    function emitCreation(address _association, string memory _name, string memory _founder) public {
+        emit CreationEvent(_association, _name, _founder);
     }
 
-    event CreationEvent(address _association, string _name);
+    event CreationEvent(address _association, string _name, string _founder);
 }

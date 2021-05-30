@@ -26,7 +26,7 @@ contract AssociationOrg is Context {
         require(bytes(_name).length != 0, "Association name cannot be empty");
         require(bytes(_memberName).length != 0, "Member name cannot be empty");
         MasterOrg master = MasterOrg(_master);
-        master.emitCreation(address(this), _name);
+        master.emitCreation(address(this), _name, _memberName);
         owner = _msgSender();
         members[_msgSender()] = true;
         name = _name;

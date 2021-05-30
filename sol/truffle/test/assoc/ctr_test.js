@@ -77,4 +77,13 @@ contract('AssociationOrg', async (accounts) => {
     assert.isFalse(maintenanceModeAfter, "Maintenance mode is not activated after");
   })
 
+  it("Association creation is correctly logged", async() => {
+    let masterOrg2 = await MasterOrg.new();
+    await AssoOrg.new("testAssociation", "i1", masterOrg2.address);
+    await AssoOrg.new("testAssociation", "i2", masterOrg2.address);
+    await AssoOrg.new("testAssociation", "i3", masterOrg2.address);
+    let events = await masterOrg2.getPastEvents('CreationEvent', { fromBlock: 0, toBlock: 'latest' });
+    assert.equal(events.length, 3);
+  })
+
 })
