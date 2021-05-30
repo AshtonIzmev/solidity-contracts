@@ -26,6 +26,7 @@ contract AssociationOrg is Context {
         require(bytes(_name).length != 0, "Association name cannot be empty");
         require(bytes(_memberName).length != 0, "Member name cannot be empty");
         MasterOrg master = MasterOrg(_master);
+        // is there some other way rather than use "fake" emit function ?
         master.emitCreation(address(this), _name, _memberName);
         owner = _msgSender();
         members[_msgSender()] = true;
@@ -140,7 +141,7 @@ contract AssociationOrg is Context {
         return referendums.length;
     }
 
-    // TODO add more controls
+    // Should not be public, but can be filtered on client side
     function emitAdmin(address _administration, uint _kind) public {
         emit AdminEvent(_administration, _kind);
     }

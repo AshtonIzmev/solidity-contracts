@@ -120,4 +120,12 @@ contract('AssociationAdministration', async(accounts) => {
     assert.equal(count, 3);
   });
 
+  it("Correct count of events", async() => {
+    let asso = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
+    let adminRef = await AssoReferendum.new(asso.address, "42 ?", {from: owner});
+    let events = await asso.getPastEvents('AdminEvent', { fromBlock: 0, toBlock: 'latest' });
+    assert.equal(events.length, 1, "Correct number of events");
+  });
+
+
 });

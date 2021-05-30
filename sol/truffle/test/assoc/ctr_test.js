@@ -86,4 +86,13 @@ contract('AssociationOrg', async (accounts) => {
     assert.equal(events.length, 3);
   })
 
+  // Is there some way to prevent this ?
+  it("Anyone can emit", async() => {
+    let masterOrg3 = await MasterOrg.new();
+    await masterOrg3.emitCreation(nonOwner, "fake", "fake");
+    await masterOrg3.emitCreation(nonOwner, "fake2", "fake2");
+    let events = await masterOrg3.getPastEvents('CreationEvent', { fromBlock: 0, toBlock: 'latest' });
+    assert.equal(events.length, 2);
+  })
+
 })

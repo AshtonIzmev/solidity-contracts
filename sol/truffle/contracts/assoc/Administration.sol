@@ -61,6 +61,7 @@ contract AssociationAdministrationOwnerchange is AssociationAdministration {
     constructor(address _assoCtr) {
         proposedMember = _msgSender();
         assoCtr = AssociationOrg(_assoCtr);
+        assoCtr.emitAdmin(address(this), uint(adminAction));
         require(_msgSender() != assoCtr.owner(), "New owner cannot be old owner");
     }
     function getAdminActionType() public override view returns (AdminAction) {
@@ -72,6 +73,7 @@ contract AssociationAdministrationSelfdestruct is AssociationAdministration {
     AdminAction public adminAction = AdminAction.SELFDESTRUCT;
     constructor(address _assoCtr) {
         assoCtr = AssociationOrg(_assoCtr);
+        assoCtr.emitAdmin(address(this), uint(adminAction));
     }
     function getAdminActionType() public override view returns (AdminAction) {
         return adminAction;
@@ -86,6 +88,7 @@ contract AssociationAdministrationCooptation is AssociationAdministration {
         proposedMember = _msgSender();
         memberName = _memberName;
         assoCtr = AssociationOrg(_assoCtr);
+        assoCtr.emitAdmin(address(this), uint(adminAction));
     }
     function getAdminActionType() public override view returns (AdminAction) {
         return adminAction;
@@ -99,6 +102,7 @@ contract AssociationAdministrationReferendum is AssociationAdministration {
         require(bytes(_question).length > 0, "Question name cannot be empty");
         proposedMember = _msgSender();
         assoCtr = AssociationOrg(_assoCtr);
+        assoCtr.emitAdmin(address(this), uint(adminAction));
         referendumQuestion = _question;
     }
     function getAdminActionType() public override view returns (AdminAction) {

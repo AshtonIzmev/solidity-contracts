@@ -121,4 +121,11 @@ contract('AssociationAdministration', async(accounts) => {
     await tryCatch(AssoAdminOC.new(assoOrg.address, {from: owner}), errTypes.revert);
   })
 
+  it("Correct count of events", async() => {
+    let asso = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
+    let adminOC = await AssoAdminOC.new(asso.address, {from: wannabeMember});
+    let events = await asso.getPastEvents('AdminEvent', { fromBlock: 0, toBlock: 'latest' });
+    assert.equal(events.length, 1, "Correct number of events");
+  });
+
 });

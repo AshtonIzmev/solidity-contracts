@@ -58,4 +58,11 @@ contract('AssociationAdministration', async(accounts) => {
     await assoOrg.handleSelfdestructAction(adminSD.address);
   });
 
+  it("Correct count of events", async() => {
+    let asso = await AssoOrg.new("testAssociation3", "Issam_test", masterOrg.address);
+    let adminSD = await AssoAdminSD.new(asso.address, {from: owner});
+    let events = await asso.getPastEvents('AdminEvent', { fromBlock: 0, toBlock: 'latest' });
+    assert.equal(events.length, 1, "Correct number of events");
+  });
+
 });
