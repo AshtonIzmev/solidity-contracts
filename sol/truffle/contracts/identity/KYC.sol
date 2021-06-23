@@ -22,6 +22,7 @@ contract KYC is Context {
     }
     
     function submitKYC(string memory _name, string memory _identityDocument) public {
+        require(!ecitizen[_msgSender()], "Unvalidated");
         // Special offer : everyone is verified
         ecitizen[_msgSender()] = true; // for the sake of simplification
         emit IdentitySubmission(_msgSender(), _name, _identityDocument);

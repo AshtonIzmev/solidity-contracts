@@ -32,6 +32,12 @@ contract('KYC', async (accounts) => {
     assert.equal(events2.length, 2);
   });
 
+  it("Double validation NOK", async() => {
+    let kycCtr = await KYCCtr.new({from: homeAffaireDept});
+    await kycCtr.submitKYC("issam", "CIN12345", {from: citizen1});
+    await tryCatch(kycCtr.submitKYC("issam", "CIN12345", {from: citizen1}), errTypes.revert);
+  });
+
   it("Unvalidation", async() => {
     let kycCtr = await KYCCtr.new({from: homeAffaireDept});
     await kycCtr.validateKYC(citizen3, {from: homeAffaireDept});

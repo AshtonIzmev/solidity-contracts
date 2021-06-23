@@ -47,8 +47,8 @@ contract FP is ERC721 {
     function create(address buyer, uint16 kind_) public virtual {
         require(isApprovedForAll(issuingBank, _msgSender()), "Approved for all operator only");
         _tokenCounter.increment();
-        _safeMint(buyer, _tokenCounter.current());
         _subscriptionKinds[_tokenCounter.current()] = kind_;
+        _safeMint(buyer, _tokenCounter.current());
     }
 
     function destroy(uint256 tokenId) public virtual {
