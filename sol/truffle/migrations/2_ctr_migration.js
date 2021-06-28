@@ -16,7 +16,7 @@ module.exports = async function(deployer) {
   await deployer.deploy(MED, treasureAdd, 10, 90000, false, 200000000000000, KYC.address);
   await deployer.deploy(FP, "Finance Products", "FP");
   await deployer.deploy(Marketplace, 1, 2, MED.address, FP.address);
-  await deployer.deploy(DAT, 1000, 2, 1, MED.address, FP.address);
+  await deployer.deploy(DAT, 1000, MED.address, FP.address);
   await deployer.deploy(Factoring, MED.address, FP.address);
   await deployer.deploy(Mudaraba, "A", "12345", 10000, MED.address, FP.address);
 

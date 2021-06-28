@@ -32,8 +32,9 @@ contract('Marketplace', async (accounts) => {
     await kycCtr.validateKYC(treasureAcc, {from: homeAffaireDept});
     medCtr = await MEDCtr.new(treasureAcc, 5, 10000, false, 10000000, kycCtr.address, {from: centralBankAcc});
     fpCtr = await FPCtr.new("Financial Products NFT", "FPNFT", {from: issuingBank});
-    datCtr = await DATCtr.new(100, 2, 25, medCtr.address, fpCtr.address, {from: issuingBank});
+    datCtr = await DATCtr.new(100, medCtr.address, fpCtr.address, {from: issuingBank});
     mpCtr = await MPCtr.new(10, 3, medCtr.address, fpCtr.address, {from: issuingBank})
+    await datCtr.setProduct(2, 25, {from: issuingBank});
     await fpCtr.setApprovalForAll(datCtr.address, true, {from: issuingBank});
     await kycCtr.validateKYC(citizen1, {from: homeAffaireDept});
     await kycCtr.validateKYC(citizen2, {from: homeAffaireDept});
@@ -48,17 +49,17 @@ contract('Marketplace', async (accounts) => {
 
     await medCtr.updateAccount(citizen1, {from: citizen1});
     await medCtr.approve(datCtr.address, 1002, {from: citizen1});
-    await datCtr.subscribe(200, {from: citizen1});
-    await datCtr.subscribe(212, {from: citizen1});
+    await datCtr.subscribe(200, 2, 25, {from: citizen1});
+    await datCtr.subscribe(212, 2, 25, {from: citizen1});
 
     await medCtr.updateAccount(citizen2, {from: citizen2});
     await medCtr.approve(datCtr.address, 1004, {from: citizen2});
-    await datCtr.subscribe(400, {from: citizen2});
-    await datCtr.subscribe(469, {from: citizen2});
+    await datCtr.subscribe(400, 2, 25, {from: citizen2});
+    await datCtr.subscribe(469, 2, 25, {from: citizen2});
 
     await medCtr.updateAccount(citizen3, {from: citizen3});
     await medCtr.approve(datCtr.address, 1004, {from: citizen3});
-    await datCtr.subscribe(311, {from: citizen3});
+    await datCtr.subscribe(311, 2, 25, {from: citizen3});
   });
 
   it("Public variables should be set by constructor", async() => {

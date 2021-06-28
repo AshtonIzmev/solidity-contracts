@@ -13,42 +13,56 @@ contract DAT is GenericProduct {
     using EnumerableSet for EnumerableSet.UintSet;
 
     uint256 public minimumAmount;
-    uint256 public dayDuration;
-    uint16 public interestRate;
+
+    mapping (uint256 => uint16) public allowedParams;
 
     struct Product {
         uint256 _subscriptionDate;
+        uint256 _subscriptionDuration;
         uint256 _subscriptionAmount;
+        address _owner;
     }
 
     mapping (uint256 => Product) private _subscriptions;
 
+    modifier onlyOwner() {
+        require(
+            _msgSender() == _issuingBank,
+            "Only owner is allowed to call this"
+        );
+        _;
+    }
+
     /**
      * param minimumAmount      minimum amount deposited
-     * param dayDuration        duration of the DAT (in days)
-     * param interestRate       interest rate of the DAT
      */
-    constructor (uint256 minimumAmount_, uint256 dayDuration_, uint16 interestRate_, 
-            address medToken_, address fpToken_) {
+    constructor (uint256 minimumAmount_, address medToken_, address fpToken_) {
         _issuingBank = _msgSender();
         minimumAmount = minimumAmount_;
-        dayDuration = dayDuration_;
-        interestRate = interestRate_;
-
         medToken = MED(medToken_);
         fpToken = FP(fpToken_);
     }
 
     /**
+     * Set parameters for a new product
+     */
+    function setProduct(uint256 dayDuration, uint16 interestRate) public virtual onlyOwner {
+        require(dayDuration > 0, "Duration in days must be in te future");
+        require(interestRate > 0, "Rate must be a non zero value");
+        allowedParams[dayDuration] = interestRate;
+    }
+
+    /**
      * Subscribe a new term deposit
      */
-    function subscribe(uint256 depositAmount) public virtual {
+    function subscribe(uint256 depositAmount, uint256 dayDuration, uint16 interestRate) public virtual {
+        require(allowedParams[dayDuration] == interestRate, "Must be existing product");
         require(depositAmount >= minimumAmount, "Deposit amount is less than minimum required");
         require(medToken.allowance(_msgSender(), address(this)) >= depositAmount, "Prepare an allowance with the correct amount in order to subscribe");
         medToken.transferFrom(_msgSender(), address(this), depositAmount);
         fpToken.create(_msgSender(), 0);
         uint256 tokenId = fpToken.getCurrentTokenId();
-        _subscriptions[tokenId] = Product(medToken.daysElapsed(), depositAmount);
+        _subscriptions[tokenId] = Product(medToken.daysElapsed(), dayDuration, depositAmount, _msgSender());
         _subscriptionIds.add(tokenId);
     }
 
@@ -67,7 +81,8 @@ contract DAT is GenericProduct {
      * Get your principal and your interest once the term ended
      */
     function payDat(uint256 tokenId) public virtual {
-        require(medToken.daysElapsed() - _subscriptions[tokenId]._subscriptionDate > dayDuration, 
+        uint16 interestRate = allowedParams[_subscriptions[tokenId]._subscriptionDuration];
+        require(medToken.daysElapsed() - _subscriptions[tokenId]._subscriptionDate > _subscriptions[tokenId]._subscriptionDuration, 
             "Too early to be payed");
         uint256 initialAmount = _subscriptions[tokenId]._subscriptionAmount;
         medToken.transfer(fpToken.ownerOf(tokenId), initialAmount * (100+interestRate) / 100);
@@ -75,10 +90,12 @@ contract DAT is GenericProduct {
         _subscriptionIds.remove(tokenId);        
     }
 
-    function getProduct(uint256 tokenId) public view virtual returns (uint256, uint256) {
+    function getProduct(uint256 tokenId) public view virtual returns (uint256, uint256, uint256, address) {
         return (
             _subscriptions[tokenId]._subscriptionDate,
-            _subscriptions[tokenId]._subscriptionAmount);
+            _subscriptions[tokenId]._subscriptionDuration,
+            _subscriptions[tokenId]._subscriptionAmount,
+            _subscriptions[tokenId]._owner);
     }
 
 }
