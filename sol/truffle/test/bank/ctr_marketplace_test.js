@@ -163,6 +163,23 @@ contract('Marketplace', async (accounts) => {
     assert.equal(offerLen2.toNumber(), 0, "No more offer");
   });
 
+  it("Double sell not possible", async() => {
+    await medCtr.updateAccount(citizen5, {from: citizen5});
+
+    let tokId = await datCtr.getSubscription(0);
+    let tf1 = await mpCtr.totalFees();
+    let bal11 = await medCtr.balanceOf(citizen1);
+    let bal15 = await medCtr.balanceOf(citizen5);
+    assert.equal(tf1, 0, "No fees collected so far");
+    assert.equal(bal11.toNumber(), 19588, "No fees collected so far");
+    assert.equal(bal15.toNumber(), 20000, "No fees collected so far");
+
+    await fpCtr.approve(mpCtr.address, tokId, {from: citizen1});
+    await medCtr.approve(mpCtr.address, 250, {from: citizen1});
+    await mpCtr.sell(tokId, 201, {from: citizen1});
+    await tryCatch(mpCtr.sell(tokId, 205, {from: citizen1}), errTypes.revert);
+  });
+
   it("Insufficient allowance for a FP sell", async() => {
     await medCtr.updateAccount(citizen5, {from: citizen5});
 

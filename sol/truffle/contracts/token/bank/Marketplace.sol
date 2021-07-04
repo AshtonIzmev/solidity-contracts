@@ -54,6 +54,7 @@ contract Marketplace is IERC721Receiver, Context {
         require(price_ > sellFee, "Selling price must be greater than the marketplace fees");
         require(fpToken.getApproved(tokenId_) == address(this), "Prepare an allowance for the token in order to sell");
         require(medToken.allowance(_msgSender(), address(this)) >= price_ + withdrawFee + sellFee, "Prepare an allowance with the correct amount in order to sell");
+        require(!isToSell(tokenId_), "Token already to be sold");
         medToken.transferFrom(_msgSender(), address(this), withdrawFee + sellFee);
         fpToken.safeTransferFrom(_msgSender(), address(this), tokenId_);
         _tokenIds.add(tokenId_);
