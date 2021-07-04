@@ -140,11 +140,14 @@ contract('Marketplace', async (accounts) => {
     let bal21 = await medCtr.balanceOf(citizen1);
     let bal25 = await medCtr.balanceOf(citizen5);
     let offerLen = await mpCtr.getOfferLength();
+    let offer = await mpCtr.getOffer(tokId);
     assert.equal(owner, mpCtr.address, "Temporary owner is the Marketplace Contract");
     assert.equal(tf2, 0, "No fees collected so far");
     assert.equal(bal21.toNumber(), 19575, "Allowance have been given and sell+fee have been withdrawn");
     assert.equal(bal25.toNumber(), 20000, "No payment so far");
     assert.equal(offerLen.toNumber(), 1, "One offer made");
+    assert.equal(offer[0], citizen1, "Seller is correct");
+    assert.equal(offer[1], 201, "Selling price is correct");
 
     await medCtr.approve(mpCtr.address, 500, {from: citizen5});
     await mpCtr.buy(tokId, {from: citizen5});

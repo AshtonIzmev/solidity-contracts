@@ -26,11 +26,11 @@ contract Marketplace is IERC721Receiver, Context {
     uint256 public totalFees;
 
     struct Offer {
-        address _tokenOwner;
+        address _seller;
         uint256 _sellingPrice;
     }
 
-    mapping (uint256 => Offer) private offers;
+    mapping (uint256 => Offer) private _offers;
     EnumerableSet.UintSet private _tokenIds;
 
     modifier onlyIssuingBank() {
@@ -57,13 +57,13 @@ contract Marketplace is IERC721Receiver, Context {
         medToken.transferFrom(_msgSender(), address(this), withdrawFee + sellFee);
         fpToken.safeTransferFrom(_msgSender(), address(this), tokenId_);
         _tokenIds.add(tokenId_);
-        offers[tokenId_] = Offer(_msgSender(), price_);
+        _offers[tokenId_] = Offer(_msgSender(), price_);
     }
 
     function withdraw(uint256 tokenId_) public virtual {
         require(_tokenIds.contains(tokenId_), "Token offer does not exist");
-        Offer memory offer = offers[tokenId_];
-        require(offer._tokenOwner == _msgSender(), "You are not the owner of this token");
+        Offer memory offer = _offers[tokenId_];
+        require(offer._seller == _msgSender(), "You are not the owner of this token");
         medToken.transfer(_msgSender(), sellFee);
         fpToken.safeTransferFrom(address(this), _msgSender(), tokenId_);
         _tokenIds.remove(tokenId_);
@@ -72,10 +72,10 @@ contract Marketplace is IERC721Receiver, Context {
 
     function buy(uint256 tokenId_) public virtual {
         require(_tokenIds.contains(tokenId_), "Token offer does not exist");
-        Offer memory offer = offers[tokenId_];
+        Offer memory offer = _offers[tokenId_];
         require(medToken.allowance(_msgSender(), address(this)) >= offer._sellingPrice, "Prepare an allowance with the correct amount in order to buy");
         medToken.transferFrom(_msgSender(), address(this), offer._sellingPrice);
-        medToken.transfer(offer._tokenOwner, offer._sellingPrice + withdrawFee);
+        medToken.transfer(offer._seller, offer._sellingPrice + withdrawFee);
         fpToken.safeTransferFrom(address(this), _msgSender(), tokenId_);
         _tokenIds.remove(tokenId_);
         totalFees = totalFees + sellFee;
@@ -99,9 +99,16 @@ contract Marketplace is IERC721Receiver, Context {
         return _tokenIds.length();
     }
 
-     function onERC721Received(address, address, uint256, bytes calldata) 
+    function getOffer(uint256 tokenId) public view virtual returns (address, uint256) {
+        require(_tokenIds.contains(tokenId), "Unknown token");
+        return (
+            _offers[tokenId]._seller,
+            _offers[tokenId]._sellingPrice);
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) 
             pure external override returns (bytes4) { 
         return this.onERC721Received.selector;
-     } 
+    } 
 
 }
