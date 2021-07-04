@@ -53,6 +53,8 @@ contract Marketplace is IERC721Receiver, Context {
         require(fpToken.ownerOf(tokenId_) == _msgSender(), "You are not the owner of this token");
         require(price_ > sellFee, "Selling price must be greater than the marketplace fees");
         require(fpToken.getApproved(tokenId_) == address(this), "Prepare an allowance for the token in order to sell");
+        require(medToken.allowance(_msgSender(), address(this)) >= price_ + withdrawFee + sellFee, "Prepare an allowance with the correct amount in order to sell");
+        medToken.transferFrom(_msgSender(), address(this), withdrawFee + sellFee);
         fpToken.safeTransferFrom(_msgSender(), address(this), tokenId_);
         _tokenIds.add(tokenId_);
         offers[tokenId_] = Offer(_msgSender(), price_);
@@ -62,8 +64,7 @@ contract Marketplace is IERC721Receiver, Context {
         require(_tokenIds.contains(tokenId_), "Token offer does not exist");
         Offer memory offer = offers[tokenId_];
         require(offer._tokenOwner == _msgSender(), "You are not the owner of this token");
-        require(medToken.allowance(_msgSender(), address(this)) >= withdrawFee, "Prepare an allowance with the correct amount in order to withdraw");
-        medToken.transferFrom(_msgSender(), address(this), withdrawFee);
+        medToken.transfer(_msgSender(), sellFee);
         fpToken.safeTransferFrom(address(this), _msgSender(), tokenId_);
         _tokenIds.remove(tokenId_);
         totalFees = totalFees + withdrawFee;
@@ -74,7 +75,7 @@ contract Marketplace is IERC721Receiver, Context {
         Offer memory offer = offers[tokenId_];
         require(medToken.allowance(_msgSender(), address(this)) >= offer._sellingPrice, "Prepare an allowance with the correct amount in order to buy");
         medToken.transferFrom(_msgSender(), address(this), offer._sellingPrice);
-        medToken.transfer(offer._tokenOwner, offer._sellingPrice - sellFee);
+        medToken.transfer(offer._tokenOwner, offer._sellingPrice + withdrawFee);
         fpToken.safeTransferFrom(address(this), _msgSender(), tokenId_);
         _tokenIds.remove(tokenId_);
         totalFees = totalFees + sellFee;

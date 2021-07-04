@@ -145,7 +145,8 @@ contract('DAT', async (accounts) => {
     assert.equal(subsLen, 1, "One subscription registered");
     assert.equal(prod[0].toNumber(), 0, "Correct subscription date");
     assert.equal(prod[1].toNumber(), 2, "Correct duration of product DAT");
-    assert.equal(prod[2].toNumber(), 1001, "Correct amount in subscribed DAT");
+    assert.equal(prod[2].toNumber(), 25, "Correct interest rate in subscribed DAT");
+    assert.equal(prod[3].toNumber(), 1001, "Correct amount in subscribed DAT");
   });
 
   it("Cancel someone else DAT", async() => {

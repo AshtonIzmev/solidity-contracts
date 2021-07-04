@@ -133,6 +133,7 @@ contract('Marketplace', async (accounts) => {
     assert.equal(bal15.toNumber(), 20000, "No fees collected so far");
 
     await fpCtr.approve(mpCtr.address, tokId, {from: citizen1});
+    await medCtr.approve(mpCtr.address, 250, {from: citizen1});
     await mpCtr.sell(tokId, 201, {from: citizen1});
     let owner = await fpCtr.ownerOf(tokId);
     let tf2 = await mpCtr.totalFees();
@@ -141,7 +142,7 @@ contract('Marketplace', async (accounts) => {
     let offerLen = await mpCtr.getOfferLength();
     assert.equal(owner, mpCtr.address, "Temporary owner is the Marketplace Contract");
     assert.equal(tf2, 0, "No fees collected so far");
-    assert.equal(bal21.toNumber(), 19588, "Allowance have been given but no balance mvt");
+    assert.equal(bal21.toNumber(), 19575, "Allowance have been given and sell+fee have been withdrawn");
     assert.equal(bal25.toNumber(), 20000, "No payment so far");
     assert.equal(offerLen.toNumber(), 1, "One offer made");
 
@@ -157,6 +158,22 @@ contract('Marketplace', async (accounts) => {
     assert.equal(bal31.toNumber(), 19779, "Citizen 1 got his money back minus fees");
     assert.equal(bal35.toNumber(), 19799, "Citien5 paid");
     assert.equal(offerLen2.toNumber(), 0, "No more offer");
+  });
+
+  it("Insufficient allowance for a FP sell", async() => {
+    await medCtr.updateAccount(citizen5, {from: citizen5});
+
+    let tokId = await datCtr.getSubscription(0);
+    let tf1 = await mpCtr.totalFees();
+    let bal11 = await medCtr.balanceOf(citizen1);
+    let bal15 = await medCtr.balanceOf(citizen5);
+    assert.equal(tf1, 0, "No fees collected so far");
+    assert.equal(bal11.toNumber(), 19588, "No fees collected so far");
+    assert.equal(bal15.toNumber(), 20000, "No fees collected so far");
+
+    await fpCtr.approve(mpCtr.address, tokId, {from: citizen1});
+    await medCtr.approve(mpCtr.address, 201, {from: citizen1});
+    await tryCatch(mpCtr.sell(tokId, 201, {from: citizen1}), errTypes.revert);
   });
 
 })

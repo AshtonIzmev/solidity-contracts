@@ -19,6 +19,7 @@ contract DAT is GenericProduct {
     struct Product {
         uint256 _subscriptionDate;
         uint256 _subscriptionDuration;
+        uint16 _subscriptionInterest;
         uint256 _subscriptionAmount;
         address _owner;
     }
@@ -62,7 +63,7 @@ contract DAT is GenericProduct {
         medToken.transferFrom(_msgSender(), address(this), depositAmount);
         fpToken.create(_msgSender(), 0);
         uint256 tokenId = fpToken.getCurrentTokenId();
-        _subscriptions[tokenId] = Product(medToken.daysElapsed(), dayDuration, depositAmount, _msgSender());
+        _subscriptions[tokenId] = Product(medToken.daysElapsed(), dayDuration, interestRate, depositAmount, _msgSender());
         _subscriptionIds.add(tokenId);
     }
 
@@ -90,10 +91,11 @@ contract DAT is GenericProduct {
         _subscriptionIds.remove(tokenId);        
     }
 
-    function getProduct(uint256 tokenId) public view virtual returns (uint256, uint256, uint256, address) {
+    function getProduct(uint256 tokenId) public view virtual returns (uint256, uint256, uint16, uint256, address) {
         return (
             _subscriptions[tokenId]._subscriptionDate,
             _subscriptions[tokenId]._subscriptionDuration,
+            _subscriptions[tokenId]._subscriptionInterest,
             _subscriptions[tokenId]._subscriptionAmount,
             _subscriptions[tokenId]._owner);
     }

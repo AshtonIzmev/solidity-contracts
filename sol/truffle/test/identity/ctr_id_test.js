@@ -18,7 +18,7 @@ contract('KYC', async (accounts) => {
 
   it("Verification OK", async() => {
     let kycCtr = await KYCCtr.new({from: homeAffaireDept});
-    await kycCtr.submitKYC("issam", "CIN12345", {from: citizen1});
+    await kycCtr.submitKYC("issam", "CIN12345", citizen1, {from: citizen1});
     await kycCtr.validateKYC(citizen3, {from: homeAffaireDept});
     let isVerified1 = await kycCtr.isIdentified(citizen1);
     let isVerified2 = await kycCtr.isIdentified(citizen2);
@@ -34,8 +34,8 @@ contract('KYC', async (accounts) => {
 
   it("Double validation NOK", async() => {
     let kycCtr = await KYCCtr.new({from: homeAffaireDept});
-    await kycCtr.submitKYC("issam", "CIN12345", {from: citizen1});
-    await tryCatch(kycCtr.submitKYC("issam", "CIN12345", {from: citizen1}), errTypes.revert);
+    await kycCtr.submitKYC("issam", "CIN12345", citizen1, {from: citizen1});
+    await tryCatch(kycCtr.submitKYC("issam", "CIN12345", citizen1, {from: citizen1}), errTypes.revert);
   });
 
   it("Unvalidation", async() => {

@@ -21,12 +21,12 @@ contract KYC is Context {
         owner = _msgSender();
     }
     
-    function submitKYC(string memory _name, string memory _identityDocument) public {
-        require(!ecitizen[_msgSender()], "Unvalidated");
+    function submitKYC(string memory _name, string memory _identityDocument, address _add) public {
+        require(!ecitizen[_add], "Unvalidated");
         // Special offer : everyone is verified
-        ecitizen[_msgSender()] = true; // for the sake of simplification
-        emit IdentitySubmission(_msgSender(), _name, _identityDocument);
-        emit IdentityValidation(_msgSender());
+        ecitizen[_add] = true; // for the sake of simplification
+        emit IdentitySubmission(_add, _name, _identityDocument);
+        emit IdentityValidation(_add);
     }
 
     function validateKYC(address _add) public onlyOwner {
