@@ -30,7 +30,7 @@ abstract contract GenericProduct is Context {
         _;
     }
 
-    function isSuscribed(uint256 tokenId) public virtual view returns (bool) {
+    function isSubscribed(uint256 tokenId) public virtual view returns (bool) {
         return _subscriptionIds.contains(tokenId);
     }
 

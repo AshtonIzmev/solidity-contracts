@@ -52,7 +52,7 @@ contract('Factoring', async (accounts) => {
   it("Suscribe Factoring product Succeeds", async() => {
     let subsLen1 = await factoringCtr.getSubscriptionLength();
     await fpCtr.setApprovalForAll(factoringCtr.address, true, {from: issuingBank});
-    await factoringCtr.sellInvoice(999, citizen5, {from: citizen1});
+    await factoringCtr.sellInvoice(999, citizen5, 15, {from: citizen1});
     let tokId = await fpCtr.getCurrentTokenId();
     let prod = await factoringCtr.getProduct(tokId);
     let owner = await fpCtr.ownerOf(tokId);
@@ -62,11 +62,12 @@ contract('Factoring', async (accounts) => {
     assert.equal(prod[0], citizen5, "Correct borrower");
     assert.equal(prod[2], 999, "Invoice amount");
     assert.equal(prod[3], false, "Non-validated invoice yet");
+    assert.equal(prod[4], 15, "Correct invoice ID");
   });
 
   it("Validate Factoring product Succeeds", async() => {
     await fpCtr.setApprovalForAll(factoringCtr.address, true, {from: issuingBank});
-    await factoringCtr.sellInvoice(999, citizen5, {from: citizen1});
+    await factoringCtr.sellInvoice(999, citizen5, 42, {from: citizen1});
     let tokId = await fpCtr.getCurrentTokenId();
     await tryCatch(factoringCtr.validateInvoice(tokId, {from: citizen4}), errTypes.revert);
     await factoringCtr.validateInvoice(tokId, {from: citizen5});
@@ -77,11 +78,12 @@ contract('Factoring', async (accounts) => {
     assert.equal(prod[0], citizen5, "Correct borrower");
     assert.equal(prod[2], 999, "Invoice amount");
     assert.equal(prod[3], true, "Validated invoice yet");
+    assert.equal(prod[4], 42, "Correct invoice ID");
   });
 
   it("Pay Factoring product Succeeds", async() => {
     await fpCtr.setApprovalForAll(factoringCtr.address, true, {from: issuingBank});
-    await factoringCtr.sellInvoice(999, citizen5, {from: citizen1});
+    await factoringCtr.sellInvoice(999, citizen5, 0, {from: citizen1});
     let tokId = await fpCtr.getCurrentTokenId();
     await tryCatch(factoringCtr.payInvoice(tokId, {from: citizen4}), errTypes.revert);
     await tryCatch(factoringCtr.payInvoice(tokId, {from: citizen5}), errTypes.revert);
@@ -99,6 +101,7 @@ contract('Factoring', async (accounts) => {
     assert.equal(prod[0], citizen5, "Correct borrower");
     assert.equal(prod[2], 999, "Invoice amount");
     assert.equal(prod[3], false, "No validation needed to pay an invoice");
+    assert.equal(prod[4], 0, "Correct invoice ID");
   });
 
   

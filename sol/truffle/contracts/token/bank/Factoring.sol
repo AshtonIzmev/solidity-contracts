@@ -17,6 +17,7 @@ contract Factoring is GenericProduct {
         uint256 _factoringDate;
         uint256 _factoringAmount;
         bool _validated;
+        uint256 _id;
     }
 
     mapping (uint256 => Product) private _subscriptions;
@@ -29,10 +30,10 @@ contract Factoring is GenericProduct {
     /**
      * Get a token in exchange of an invoice
      */
-    function sellInvoice(uint256 invoiceAmount_, address borrower_) public virtual {
+    function sellInvoice(uint256 invoiceAmount_, address borrower_, uint256 id_) public virtual {
         fpToken.create(_msgSender(), 1);
         uint256 tokenId = fpToken.getCurrentTokenId();
-        _subscriptions[tokenId] = Product(borrower_, medToken.daysElapsed(), invoiceAmount_, false);
+        _subscriptions[tokenId] = Product(borrower_, medToken.daysElapsed(), invoiceAmount_, false, id_);
         _subscriptionIds.add(tokenId);
     }
 
@@ -40,18 +41,18 @@ contract Factoring is GenericProduct {
      * Validate an invoice
      */
     function validateInvoice(uint256 tokenId) public virtual {
-        require(isSuscribed(tokenId), "Existing Factoring subscription");
+        require(isSubscribed(tokenId), "Existing Factoring subscription");
         Product memory prod = _subscriptions[tokenId];
         require(prod._borrower == _msgSender(), "Only borrower can validate");
         _subscriptions[tokenId] = 
-            Product(prod._borrower, prod._factoringDate, prod._factoringAmount, true);
+            Product(prod._borrower, prod._factoringDate, prod._factoringAmount, true, prod._id);
     }
 
     /**
      * Pay the owner of the FP NFT invoice representation
      */
     function payInvoice(uint256 tokenId) public virtual {
-        require(isSuscribed(tokenId), "Existing Factoring subscription");
+        require(isSubscribed(tokenId), "Existing Factoring subscription");
         Product memory prod = _subscriptions[tokenId];
         require(prod._borrower == _msgSender(), "Only borrower can pay");
         medToken.transferFrom(_msgSender(), fpToken.ownerOf(tokenId), prod._factoringAmount);
@@ -59,12 +60,13 @@ contract Factoring is GenericProduct {
         _subscriptionIds.remove(tokenId);
     }
 
-    function getProduct(uint256 tokenId) public view virtual returns (address, uint256, uint256, bool) {
+    function getProduct(uint256 tokenId) public view virtual returns (address, uint256, uint256, bool, uint256) {
         return (
             _subscriptions[tokenId]._borrower,
             _subscriptions[tokenId]._factoringDate,
             _subscriptions[tokenId]._factoringAmount,
-            _subscriptions[tokenId]._validated);
+            _subscriptions[tokenId]._validated,
+            _subscriptions[tokenId]._id);
     }
 
 }

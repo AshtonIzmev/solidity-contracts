@@ -15,10 +15,10 @@ module.exports = async function(deployer) {
   await deployer.deploy(KYC);
   await deployer.deploy(MED, treasureAdd, 10, 90000, false, 200000000000000, KYC.address);
   await deployer.deploy(FP, "Finance Products", "FP");
-  await deployer.deploy(Marketplace, 1, 2, MED.address, FP.address);
+  await deployer.deploy(Marketplace, 2500, 500, MED.address, FP.address);
   await deployer.deploy(DAT, 1000, MED.address, FP.address);
   await deployer.deploy(Factoring, MED.address, FP.address);
-  await deployer.deploy(Mudaraba, "A", "12345", 10000, MED.address, FP.address);
+  await deployer.deploy(Mudaraba, "Patisserie Ibtissam", "123456/178", 1000000, MED.address, FP.address);
 
   const master = await Master.deployed();
   const kyc = await KYC.deployed();

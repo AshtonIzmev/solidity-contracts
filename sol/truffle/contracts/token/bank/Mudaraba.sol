@@ -106,7 +106,7 @@ contract Mudaraba is GenericProduct {
     /* ********************************************************* */
 
     function _addFund(uint256 tokenId, uint256 depositAmount) internal virtual {
-        require(isSuscribed(tokenId), "Existing Mudaraba subscription");
+        require(isSubscribed(tokenId), "Existing Mudaraba subscription");
         Product memory prod = _subscriptions[tokenId];
         require(totalCapital + depositAmount < capitalCap, "Capital cap exceeded");
         medToken.transferFrom(_msgSender(), address(this), depositAmount);
@@ -115,7 +115,7 @@ contract Mudaraba is GenericProduct {
     }
 
     function _withdrawFund(uint256 tokenId, uint256 withdrawnAmount) internal virtual {
-        require(isSuscribed(tokenId), "Existing Mudaraba subscription");
+        require(isSubscribed(tokenId), "Existing Mudaraba subscription");
         Product memory prod = _subscriptions[tokenId];
         require(prod._subscriptionAmount >= withdrawnAmount, "Withdrawn amount must be less than total product");
         medToken.transfer(_msgSender(), withdrawnAmount);
