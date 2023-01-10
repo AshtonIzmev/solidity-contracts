@@ -51,7 +51,9 @@ Un vote peut être positif, négatif ou neutre face à une question posée dans 
 ## Dev suite
 ### Node
 Install Node https://nodejs.org/en/  
-Follow theses steps if using Ubuntu : https://doc.ubuntu-fr.org/nodejs
+# Does not work since it install old versions of Node Follow theses steps if using Ubuntu : https://github.com/nodesource/distributions/blob/master/README.md#deb or https://doc.ubuntu-fr.org/nodejs
+# Try using snap instead
+Install using the github node snap repo : https://github.com/nodejs/snap
 
 Verify the install  
 `node -v && npm -v`
