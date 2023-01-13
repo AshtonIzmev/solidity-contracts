@@ -19,4 +19,15 @@ module.exports.tryCatch = async function(promise, errType) {
     }
 };
 
+module.exports.tryCatchFree = async function(promise, msg) {
+    try {
+        await promise;
+        throw null;
+    }
+    catch (error) {
+        assert(error, "Expected an error but did not get one");
+        assert(error.message == msg, "Expected the following error '" + msg + "' but got this one '" + error.message + "'");
+    }
+};
+
 const PREFIX = "Returned error: VM Exception while processing transaction: ";
