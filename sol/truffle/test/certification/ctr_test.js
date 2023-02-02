@@ -1,4 +1,3 @@
-const InstitutionCtr = artifacts.require("Institution");
 const SchoolCtr = artifacts.require("School");
 const CompanyCtr = artifacts.require("Company");
 
@@ -41,7 +40,7 @@ contract('School', async (accounts) => {
   })
 
   it("Alumni registers to the school", async() => {
-    await school.register( infos, hashInfos, 2007, true, {from: alumni1});
+    await school.register(infos, hashInfos, 2007, true, {from: alumni1});
     let alumniStruct = await school.alumnis(alumni1);
     let validations = await school.validations(alumni1);
     assert.equal(alumniStruct.privateInfoSchool, infos, "Private infos are correct");
