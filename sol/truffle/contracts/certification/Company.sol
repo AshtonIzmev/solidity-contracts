@@ -18,7 +18,7 @@ contract Company is Institution {
         emitCreation(address(this), _name, 1);
     }
 
-    function submit(string memory _infos) public {
+    function submit(string memory _infos, bool _isPublic) public {
         infosCompany[_msgSender()] = _infos;
         emit DiplomaSubmission(_msgSender(), _infos);
     }

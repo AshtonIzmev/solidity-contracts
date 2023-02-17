@@ -13,9 +13,9 @@ contract('School', async (accounts) => {
   let alumni2       = accounts[6];
   let alumni3       = accounts[7];
 
-  let infos = "issam_el_alaoui_x2007";
+  let infos = "issam_el_alaoui_EMINSIAS_2007";
   let hashInfos = web3.utils.keccak256(infos);
-  let hashInfosFake = web3.utils.keccak256("issam_el_alaoui_x2008");
+  let hashInfosFake = web3.utils.keccak256("issam_el_alaoui_EMINSIAS_2008");
 
   before(async() => {
     school = await SchoolCtr.new(
@@ -57,15 +57,23 @@ contract('School', async (accounts) => {
 
   it("Alumni registers to the school and gets validated", async() => {
     await school.register(infos, hashInfos, 2007, true, {from: alumni2});
-    await school.validate(alumni2, {from: ownerS})
+    await school.certify(alumni2, {from: ownerS})
     let validations = await school.validations(alumni2);
     assert.equal(validations, true, "School has validated");
   })
 
+  it("Alumni registers to the school and gets validated and then changes the infos", async() => {
+    await school.register(infos, hashInfos, 2007, true, {from: alumni2});
+    await school.certify(alumni2, {from: ownerS})
+    await school.register(infos, hashInfos, 2005, true, {from: alumni2});
+    let validations = await school.validations(alumni2);
+    assert.equal(validations, false, "Infos have changed so no validation");
+  })
+
   it("Alumni submit to the company", async() => {
     await school.register(infos, hashInfos, 2007, true, {from: alumni3});
-    await school.validate(alumni3, {from: ownerS})
-    await company.submit(infos, {from: alumni3});
+    await school.certify(alumni3, {from: ownerS})
+    await company.submit(infos, true, {from: alumni3});
     let resultInfos = await company.infosCompany(alumni3);
     assert.equal(resultInfos, infos, "Infos have been submitted");
   })

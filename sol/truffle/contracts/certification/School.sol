@@ -36,11 +36,12 @@ contract School is Institution {
         newAlumni.year = _year;
         newAlumni.isPublic = _isPublic;
         alumnis[_msgSender()] = newAlumni;
+        validations[_msgSender()] = false;
         emit AlumniEvent(newAlumni);
     }
 
-    function validate(address alumni) public onlyOwner {
-        validations[alumni] = true;
+    function certify(address _alumniAddress) public onlyOwner {
+        validations[_alumniAddress] = true;
     }
 
     event AlumniEvent(AlumniStruct alumni);
